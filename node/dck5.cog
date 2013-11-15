@@ -1,0 +1,56 @@
+='How to setup a TermCast server' !cog #pairup #termcast #howto .kwim
+
+I set up a termcast server. It involved a lot of steps. There are 3 parts
+needed:
+
+* App::Termcast::Server
+* node-termcast-server
+* App::Termcast
+
+The first 2 run on a server. I spun up an HPCloud server with wide open port
+access. I'm not sure which ports are needed to be open. (I used `pairup` to
+setup the server quickly/sanely.)
+
+Then I follow these steps:
+
+== App::Termcast::Server Setup
+
+    $ git hub clone jasonmay/app-termcast-server
+    $ cd app-termcast-server
+    $ time cpanm --sudo -n --installdeps .
+    77 distributions installed
+    real    4m41.832s
+    $ cpanm --sudo MooseX::Getopt
+    $ echo -e "host: 15.185.107.235\nsocket: connections.sock" > etc/config.yml
+    $ perl -Ilib bin/termcast-server
+
+== node-termcast-server Setup
+
+    $ git hub clone jasonmay/node-termcast-server
+    $ cd node-termcast-server
+    $ local-lang install-nvm
+    $ . ~/local/opt/nvm/nvm.sh
+    $ nvm install v0.10.18
+    $ cd deps/libvterm/
+    $ make
+    $ cd ../..
+    $ npm install -g node-gyp
+    $ npm install express
+    $ npm install socket.io
+    $ npm install JSONStream
+    $ npm install event-stream
+    $ hash -r
+    $ node-gyp rebuild
+    $ echo '{"manager": "../app-termcast-server/connections.sock"}' > config.json
+    $ ./bin/server
+
+Now the server stuff should be running and available at http://15.185.107.235:4000
+
+== App::Termcast
+
+On a different machine (like your laptop):
+
+    $ cpanm App::Termcast
+    $ termcast --host 15.185.107.235
+
+That terminal should be viewable from http://15.185.107.235:4000. Done.
